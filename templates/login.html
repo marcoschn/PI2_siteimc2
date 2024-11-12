@@ -7,7 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Login & Registration Form | CoderGirl</title>
   <!---Custom CSS File--->
-  <link rel="stylesheet" href="assets/css/stylelogin.css">
+  <link rel="stylesheet" href="static/css/stylelogin.css">
 </head>
 <body>
   <div class="container">
@@ -15,8 +15,8 @@
     <div class="login form">
       <header>Login</header>
       <form action="#">
-        <input type="text" placeholder="Email">
-        <input type="password" placeholder="Senha">
+        <input id="email" name="email" type="text" placeholder="Email" required>
+        <input id="password" name="password" type="password" placeholder="Senha" required>
         <a href="#">Esqueceu a senha?</a>
         <input type="button" class="button" value="Login">
       </form>
@@ -31,8 +31,8 @@
       <form action="#">
         <input type="text" placeholder="Nome">
         <input type="text" placeholder="Email">
-        <input type="password" placeholder="Senha">
-        <input type="password" placeholder="Confirme a senha">
+        <input id="password" name="password" type="password" placeholder="Senha" required>
+        <input id="passwordconf" name="passwordconf" type="password" placeholder="Confirme a senha" required>
         <input type="button" class="button" value="Cadastrar">
       </form>
       <div class="signup">

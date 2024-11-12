@@ -8,12 +8,13 @@ import re
 
 app=Flask(__name__)
 
-app.secret_key = 'passpiunivesp'
 
-app.config['MYSQL_HOST'] = '191.252.200.76'
+app.secret_key = 'passpi2univesp'
+
+app.config['MYSQL_HOST'] = '145.223.31.145'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'DBUniPi1505!'
-app.config['MYSQL_DB'] = 'piunivespimc'
+app.config['MYSQL_PASSWORD'] = 'UnivPi0811!'
+app.config['MYSQL_DB'] = 'piunivespi2'
 
 mysql = MySQL(app)
 
