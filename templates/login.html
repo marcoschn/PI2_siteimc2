@@ -11,35 +11,39 @@
 </head>
 <body>
   <div class="container">
-    <input type="checkbox" id="check">
+    <!--<input type="checkbox" id="check">-->
     <div class="login form">
+      <div class="msg">{{ msg }}</div>
+      <form action="{{ url_for('login') }}" method="post">
       <header>Login</header>
       <form action="#">
         <input id="email" name="email" type="text" placeholder="Email" required>
         <input id="password" name="password" type="password" placeholder="Senha" required>
-        <a href="#">Esqueceu a senha?</a>
-        <input type="button" class="button" value="Login">
+        <!--<a href="#">Esqueceu a senha?</a>-->
+        <input type="submit" class="button" value="Login">
       </form>
       <div class="signup">
         <span class="signup">Não tem uma conta?
-         <label for="check">Cadastre-se</label>
+          <a href="registrar.html">Cadastre-se</a>
+          <!--<label for="check">Cadastre-se</label>-->
         </span>
       </div>
     </div>
-    <div class="registration form">
-      <header>Cadastrar</header>
-      <form action="#">
-        <input type="text" placeholder="Nome">
-        <input type="text" placeholder="Email">
-        <input id="password" name="password" type="password" placeholder="Senha" required>
-        <input id="passwordconf" name="passwordconf" type="password" placeholder="Confirme a senha" required>
-        <input type="button" class="button" value="Cadastrar">
-      </form>
-      <div class="signup">
-        <span class="signup">Já tem uma conta?
-         <label for="check">Login</label>
-        </span>
-      </div>
+<!--    <div class="registration form">-->
+
+<!--      <header>Cadastrar</header>-->
+<!--      <form action="{{ url_for('cadastrar') }}" method="post">-->
+<!--        <input id="nomecad" name="nomecad" type="text" placeholder="Nome" required>-->
+<!--        <input id="emailcad" name="emailcad" type="text" placeholder="Email" required>-->
+<!--        <input id="passwordcad" name="passwordcad" type="password" placeholder="Senha" required>-->
+<!--        <input id="passwordconfcad" name="passwordconfcad" type="password" placeholder="Confirme a senha" required>-->
+<!--        <input type="submit" class="button" value="Cadastrar">-->
+<!--      </form>-->
+<!--      <div class="signup">-->
+<!--        <span class="signup">Já tem uma conta?-->
+<!--         <label for="check">Login</label>-->
+<!--        </span>-->
+<!--      </div>-->
     </div>
   </div>
 </body>

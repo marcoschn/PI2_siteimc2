@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-from flask_mysqldb import MySQL
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_mysqldb import MySQL, MySQLdb
 
 import MySQLdb.cursors
 import re
+
 
 
 
@@ -14,7 +15,7 @@ app.secret_key = 'passpi2univesp'
 app.config['MYSQL_HOST'] = '145.223.31.145'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'UnivPi0811!'
-app.config['MYSQL_DB'] = 'piunivespi2'
+app.config['MYSQL_DB'] = 'univespi2'
 
 mysql = MySQL(app)
 
@@ -25,6 +26,7 @@ def index():
 
 @app.route('/login', methods =['GET', 'POST'])
 def login():
+    session['loggedin'] = False
     msg = ''
     if request.method == 'POST' and 'email' in request.form and 'password' in request.form:
         username = request.form['email']
@@ -42,6 +44,7 @@ def login():
             cursorregistros = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             sql = """
                 select 
+	                registros.codregistro, 
 	                date_format(registros.dtregistro,'%%d/%%m/%%Y') as dataregistro, 
 	                registros.alturam, 
 	                registros.pesokg, 
@@ -56,8 +59,8 @@ def login():
 		                else '0'
 	                end) as status
                 from 
-	                piunivespimc.registros 
-                inner join piunivespimc.usuarios on registros.regcodusuario = usuarios.codusuario
+	                univespi2.registros 
+                inner join univespi2.usuarios on registros.regcodusuario = usuarios.codusuario
                 where 
 	                registros.regcodusuario = % s 
                 order by 
@@ -72,6 +75,52 @@ def login():
             msg = 'Email ou senha incorretos'
     return render_template('login.html', msg = msg)
 
+@app.route('/add_registro', methods=['GET', 'POST'])
+def add_registro():
+    if session['loggedin'] == True:
+        #conn = mysql.connect()
+        #cur = conn.cursor(pymysql.cursors.DictCursor)
+        if request.method == 'POST':
+            dtregistro = request.form['dtregistro']
+            alturam = request.form['alturam']
+            pesokg = request.form['pesokg']
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('INSERT INTO registros VALUES (NULL, % s, % s, % s, % s)',
+                           (pesokg, alturam, dtregistro, session['id'],))
+            mysql.connection.commit()
+            flash('Medição adicionada com sucesso')
+            bemvindo = 'Bem-vindo(a), ' + session['username'] + '!'
+            cursorregistros = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            sql = """
+                                        select 
+                        	                date_format(registros.dtregistro,'%%d/%%m/%%Y') as dataregistro, 
+                        	                registros.alturam, 
+                        	                registros.pesokg, 
+                        	                format(((pesokg) / ((alturam)*(alturam))),1) as imc, 
+                        	                (case
+                        		                when (pesokg)/((alturam)*(alturam)) < 18.5 then 'baixo peso' 
+                        		                when (pesokg)/((alturam)*(alturam)) >=18.5 and (pesokg)/((alturam)*(alturam)) < 25 then 'normal' 
+                        		                when (pesokg)/((alturam)*(alturam)) >=25 and (pesokg)/((alturam)*(alturam)) < 30 then 'sobrepeso' 
+                        		                when (pesokg)/((alturam)*(alturam)) >=30 and (pesokg)/((alturam)*(alturam)) < 35 then 'obesidade classe I' 
+                        		                when (pesokg)/((alturam)*(alturam)) >=35 and (pesokg)/((alturam)*(alturam)) < 40 then 'obesidade classe II' 
+                        		                when (pesokg)/((alturam)*(alturam)) >=40 then 'obesidade classe III' 
+                        		                else '0'
+                        	                end) as status
+                                        from 
+                        	                univespi2.registros 
+                                        inner join univespi2.usuarios on registros.regcodusuario = usuarios.codusuario
+                                        where 
+                        	                registros.regcodusuario = % s 
+                                        order by 
+                        	            dtregistro desc
+                                    """
+            cursorregistros.execute(sql, (session['id'],))
+            resultados = cursorregistros.fetchall()
+            return render_template('home.html', bemvindo=bemvindo, resultados=resultados)
+    else:
+        return redirect(url_for('index'))
+
+
 @app.route('/logout')
 def logout():
     session.pop('loggedin', None)
@@ -80,14 +129,18 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('index'))
 
-@app.route("/cadastrar", methods =['GET', 'POST'])
-def cadastrar():
+@app.route("/registrar", methods =['POST'])
+def registrar():
     msg = ''
-    if request.method == 'POST' and 'username' in request.form and 'password' in request.form and 'passwordconf' in request.form and 'email' in request.form :
-        username = request.form['username']
-        password = request.form['password']
-        passwordconf = request.form['passwordconf']
-        email = request.form['email']
+    if request.method == 'POST' and 'nomecad' in request.form and 'passwordcad' in request.form and 'passwordconfcad' in request.form and 'emailcad' in request.form :
+        username = request.form['nomecad']
+        password = request.form['passwordcad']
+        passwordconf = request.form['passwordconfcad']
+        email = request.form['emailcad']
+        print(username)
+        print(password)
+        print(email)
+        print(passwordconf)
         if password == passwordconf :
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute('SELECT * FROM usuarios WHERE email = % s', (email, ))
@@ -109,7 +162,7 @@ def cadastrar():
             msg = 'As senhas não estão iguais'
     elif request.method == 'POST':
         msg = 'Por favor, preencha os dados'
-    return render_template('cadastrar.html', msg = msg)
+    return render_template('registrar.html', msg = msg)
 
 @app.route("/inserir", methods =['GET', 'POST'])
 def inserir():
