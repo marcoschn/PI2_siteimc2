@@ -1,17 +1,16 @@
 <!DOCTYPE html>
-<!---Coding By CoderGirl | www.codinglabweb.com--->
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Login & Registration Form | CoderGirl</title>
+  <title>Login</title>
   <!---Custom CSS File--->
   <link rel="stylesheet" href="static/css/stylelogin.css">
 </head>
 <body>
   <div class="container">
-    <!--<input type="checkbox" id="check">-->
     <div class="login form">
       <div class="msg">{{ msg }}</div>
       <form action="{{ url_for('login') }}" method="post">
@@ -19,32 +18,16 @@
       <form action="#">
         <input id="email" name="email" type="text" placeholder="Email" required>
         <input id="password" name="password" type="password" placeholder="Senha" required>
-        <!--<a href="#">Esqueceu a senha?</a>-->
         <input type="submit" class="button" value="Login">
+
       </form>
       <div class="signup">
         <span class="signup">Não tem uma conta?
-          <a href="registrar.html">Cadastre-se</a>
-          <!--<label for="check">Cadastre-se</label>-->
+         <a href="/registrar">Cadastre-se</a>
         </span>
       </div>
     </div>
-<!--    <div class="registration form">-->
 
-<!--      <header>Cadastrar</header>-->
-<!--      <form action="{{ url_for('cadastrar') }}" method="post">-->
-<!--        <input id="nomecad" name="nomecad" type="text" placeholder="Nome" required>-->
-<!--        <input id="emailcad" name="emailcad" type="text" placeholder="Email" required>-->
-<!--        <input id="passwordcad" name="passwordcad" type="password" placeholder="Senha" required>-->
-<!--        <input id="passwordconfcad" name="passwordconfcad" type="password" placeholder="Confirme a senha" required>-->
-<!--        <input type="submit" class="button" value="Cadastrar">-->
-<!--      </form>-->
-<!--      <div class="signup">-->
-<!--        <span class="signup">Já tem uma conta?-->
-<!--         <label for="check">Login</label>-->
-<!--        </span>-->
-<!--      </div>-->
-    </div>
   </div>
 </body>
 </html>

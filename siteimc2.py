@@ -34,46 +34,55 @@ def login():
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM usuarios WHERE email = % s AND senha = % s', (username, password, ))
         account = cursor.fetchone()
+
         if account:
             session['loggedin'] = True
             session['id'] = account['codusuario']
             session['username'] = account['nome']
             session['email'] = account['email']
             msg = 'Logado com sucesso!'
-            bemvindo = 'Bem-vindo(a), ' + session['username'] + '!'
-            cursorregistros = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            sql = """
-                select 
-	                registros.codregistro, 
-	                date_format(registros.dtregistro,'%%d/%%m/%%Y') as dataregistro, 
-	                registros.alturam, 
-	                registros.pesokg, 
-	                format(((pesokg) / ((alturam)*(alturam))),1) as imc, 
-	                (case
-		                when (pesokg)/((alturam)*(alturam)) < 18.5 then 'baixo peso' 
-		                when (pesokg)/((alturam)*(alturam)) >=18.5 and (pesokg)/((alturam)*(alturam)) < 25 then 'normal' 
-		                when (pesokg)/((alturam)*(alturam)) >=25 and (pesokg)/((alturam)*(alturam)) < 30 then 'sobrepeso' 
-		                when (pesokg)/((alturam)*(alturam)) >=30 and (pesokg)/((alturam)*(alturam)) < 35 then 'obesidade classe I' 
-		                when (pesokg)/((alturam)*(alturam)) >=35 and (pesokg)/((alturam)*(alturam)) < 40 then 'obesidade classe II' 
-		                when (pesokg)/((alturam)*(alturam)) >=40 then 'obesidade classe III' 
-		                else '0'
-	                end) as status
-                from 
-	                univespi2.registros 
-                inner join univespi2.usuarios on registros.regcodusuario = usuarios.codusuario
-                where 
-	                registros.regcodusuario = % s 
-                order by 
-	            dtregistro desc
-            """
-            cursorregistros.execute(sql, (session['id'],))
-            resultados = cursorregistros.fetchall()
-            #for rows in resultados:
-            #    print(rows)
-            return render_template('home.html', bemvindo = bemvindo , resultados = resultados)
+            return redirect(url_for('home'))
         else:
             msg = 'Email ou senha incorretos'
     return render_template('login.html', msg = msg)
+
+@app.route('/home', methods=['GET', 'POST'])
+def home():
+    if session['loggedin'] == True:
+        bemvindo = 'Bem-vindo(a), ' + session['username'] + '!'
+        cursorregistros = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        sql = """
+                        select 
+        	                registros.codregistro as id, 
+        	                date_format(registros.dtregistro,'%%d/%%m/%%Y') as dataregistro, 
+        	                registros.alturam, 
+        	                registros.pesokg, 
+        	                format(((pesokg) / ((alturam)*(alturam))),1) as imc, 
+        	                (case
+        		                when (pesokg)/((alturam)*(alturam)) < 18.5 then 'baixo peso' 
+        		                when (pesokg)/((alturam)*(alturam)) >=18.5 and (pesokg)/((alturam)*(alturam)) < 25 then 'normal' 
+        		                when (pesokg)/((alturam)*(alturam)) >=25 and (pesokg)/((alturam)*(alturam)) < 30 then 'sobrepeso' 
+        		                when (pesokg)/((alturam)*(alturam)) >=30 and (pesokg)/((alturam)*(alturam)) < 35 then 'obesidade classe I' 
+        		                when (pesokg)/((alturam)*(alturam)) >=35 and (pesokg)/((alturam)*(alturam)) < 40 then 'obesidade classe II' 
+        		                when (pesokg)/((alturam)*(alturam)) >=40 then 'obesidade classe III' 
+        		                else '0'
+        	                end) as status
+                        from 
+        	                univespi2.registros 
+                        inner join univespi2.usuarios on registros.regcodusuario = usuarios.codusuario
+                        where 
+        	                registros.regcodusuario = % s 
+                        order by 
+        	            dtregistro desc
+                    """
+        cursorregistros.execute(sql, (session['id'],))
+        resultados = cursorregistros.fetchall()
+        # for rows in resultados:
+        #    print(rows)
+        return render_template('home.html', bemvindo=bemvindo, resultados=resultados)
+    return redirect(url_for('login'))
+
+
 
 @app.route('/add_registro', methods=['GET', 'POST'])
 def add_registro():
@@ -89,37 +98,66 @@ def add_registro():
                            (pesokg, alturam, dtregistro, session['id'],))
             mysql.connection.commit()
             flash('Medição adicionada com sucesso')
-            bemvindo = 'Bem-vindo(a), ' + session['username'] + '!'
-            cursorregistros = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            sql = """
-                                        select 
-                        	                date_format(registros.dtregistro,'%%d/%%m/%%Y') as dataregistro, 
-                        	                registros.alturam, 
-                        	                registros.pesokg, 
-                        	                format(((pesokg) / ((alturam)*(alturam))),1) as imc, 
-                        	                (case
-                        		                when (pesokg)/((alturam)*(alturam)) < 18.5 then 'baixo peso' 
-                        		                when (pesokg)/((alturam)*(alturam)) >=18.5 and (pesokg)/((alturam)*(alturam)) < 25 then 'normal' 
-                        		                when (pesokg)/((alturam)*(alturam)) >=25 and (pesokg)/((alturam)*(alturam)) < 30 then 'sobrepeso' 
-                        		                when (pesokg)/((alturam)*(alturam)) >=30 and (pesokg)/((alturam)*(alturam)) < 35 then 'obesidade classe I' 
-                        		                when (pesokg)/((alturam)*(alturam)) >=35 and (pesokg)/((alturam)*(alturam)) < 40 then 'obesidade classe II' 
-                        		                when (pesokg)/((alturam)*(alturam)) >=40 then 'obesidade classe III' 
-                        		                else '0'
-                        	                end) as status
-                                        from 
-                        	                univespi2.registros 
-                                        inner join univespi2.usuarios on registros.regcodusuario = usuarios.codusuario
-                                        where 
-                        	                registros.regcodusuario = % s 
-                                        order by 
-                        	            dtregistro desc
-                                    """
-            cursorregistros.execute(sql, (session['id'],))
-            resultados = cursorregistros.fetchall()
-            return render_template('home.html', bemvindo=bemvindo, resultados=resultados)
+
+            return redirect(url_for('home'))
+
     else:
         return redirect(url_for('index'))
 
+
+@app.route('/edit/<id>', methods=['POST', 'GET'])
+def get_medicao(id):
+    #print(id)
+    if session['loggedin'] == True:
+        querysql="select codregistro, DATE_FORMAT(dtregistro, '%Y-%m-%d') as dt, alturam, pesokg from univespi2.registros where codregistro=" + id
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(querysql)
+        data = cursor.fetchall()
+
+        cursor.close()
+        print(data[0])
+        return render_template('edit.html', registro=data[0])
+    else:
+        return redirect(url_for('index'))
+
+@app.route('/update/<id>', methods=['POST'])
+def update_medicao(id):
+    if session['loggedin'] == True:
+        if request.method == 'POST':
+            dtregistro = request.form['dtregistro']
+            pesokg = request.form['pesokg']
+            alturam = request.form['alturam']
+
+            bemvindo = 'Bem-vindo(a), ' + session['username'] + '!'
+            cursorregistros = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursorregistros.execute("""
+                UPDATE registros
+                SET dtregistro = %s,
+                    pesokg = %s,
+                    alturam = %s
+                WHERE codregistro = %s
+            """, (dtregistro, pesokg, alturam, id))
+            mysql.connection.commit()
+            flash('Registro atualizado.')
+
+            return redirect(url_for('home'))
+    else:
+        return redirect(url_for('index'))
+
+
+@app.route('/delete/<string:id>', methods=['POST', 'GET'])
+def delete_employee(id):
+    if session['loggedin'] == True:
+        querysql = "delete from registros where codregistro=" + id
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(querysql)
+        mysql.connection.commit()
+        flash('Medição removida.')
+
+        return redirect(url_for('home'))
+
+    else:
+        return redirect(url_for('index'))
 
 @app.route('/logout')
 def logout():
@@ -129,14 +167,14 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('index'))
 
-@app.route("/registrar", methods =['POST'])
+@app.route('/registrar', methods =['GET', 'POST'])
 def registrar():
     msg = ''
-    if request.method == 'POST' and 'nomecad' in request.form and 'passwordcad' in request.form and 'passwordconfcad' in request.form and 'emailcad' in request.form :
-        username = request.form['nomecad']
-        password = request.form['passwordcad']
-        passwordconf = request.form['passwordconfcad']
-        email = request.form['emailcad']
+    if request.method == 'POST' and 'nome' in request.form and 'password' in request.form and 'passwordconf' in request.form and 'email' in request.form :
+        username = request.form['nome']
+        password = request.form['password']
+        passwordconf = request.form['passwordconf']
+        email = request.form['email']
         print(username)
         print(password)
         print(email)
@@ -157,12 +195,14 @@ def registrar():
                 cursor.execute('INSERT INTO usuarios VALUES (NULL, % s, % s, % s)', (email, password, username, ))
                 mysql.connection.commit()
                 msg = 'Usuário cadastrado com sucesso!'
-                return render_template("index.html")
+                return render_template('registrar.html', msg=msg)
+                #return render_template("index.html")
         else :
             msg = 'As senhas não estão iguais'
     elif request.method == 'POST':
         msg = 'Por favor, preencha os dados'
     return render_template('registrar.html', msg = msg)
+
 
 @app.route("/inserir", methods =['GET', 'POST'])
 def inserir():
@@ -181,6 +221,7 @@ def inserir():
             cursorregistros = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             sql = """
                             select 
+            	                codregistro as id,
             	                date_format(registros.dtregistro,'%%d/%%m/%%Y') as dataregistro, 
             	                registros.alturam, 
             	                registros.pesokg, 

@@ -1,24 +1,22 @@
-//templates/edit.html
+<!--//templates/edit.html-->
 {% extends "layout.html" %}
 {% block body %}
 
   <div class="row">
     <div class="col-md-4 offset-md-4">
       <div class="card card-body">
-        <form action="/update/{{employee.id}}" method="POST">
+        <form action="/update/{{registro.codregistro}}" method="POST">
           <div class="form-group">
-            <input type="text" name="data" value="{{employee.name}}" class="form-control">
+            <input type="date" name="dtregistro" value="{{registro.dt}}" class="form-control">
           </div>
           <div class="form-group">
-            <input type="text" name="altura" value="{{employee.phone}}" class="form-control">
+            <input type="text" name="alturam" value="{{registro.alturam}}" class="form-control">
           </div>
           <div class="form-group">
-            <input type="text" name="peso" value="{{employee.email}}" class="form-control">
+            <input type="text" name="pesokg" value="{{registro.pesokg}}" class="form-control">
           </div>
           <div class="form-group">
-            <button type="submit" class="btn btn-primary btn-block">
-              Update
-            </button>
+            <button type="submit" class="btn btn-primary btn-block">Atualizar</button>
           </div>
         </form>
       </div>
