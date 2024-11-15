@@ -83,6 +83,29 @@ def home():
     return redirect(url_for('login'))
 
 
+@app.route('/perfil', methods =['GET', 'POST'])
+def perfil():
+    if session['loggedin'] == True:
+            sqlusuario="""SELECT 
+            dadosusuario.nome as nomecompleto, 
+            DATE_FORMAT(dadosusuario.dtnascimento, '%Y-%m-%d') as dtnasc, 
+            usuarios.codusuario as idusuario, 
+            usuarios.nome as nome, 
+            usuarios.email as email  
+            FROM univespi2.usuarios 
+            inner JOIN univespi2.dadosusuario  
+            ON usuarios.codusuario = dadosusuario.codusuario 
+            WHERE usuarios.codusuario = """ + str(session['id'])
+            print(sqlusuario)
+
+            cursorperfil = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursorperfil.execute(sqlusuario)
+            perfilusuario = cursorperfil.fetchall()
+            print(perfilusuario)
+            return render_template('perfil.html', perfilusuario=perfilusuario[0])
+    else:
+        return redirect(url_for('index'))
+
 
 @app.route('/add_registro', methods=['GET', 'POST'])
 def add_registro():
@@ -115,7 +138,7 @@ def get_medicao(id):
         data = cursor.fetchall()
 
         cursor.close()
-        print(data[0])
+
         return render_template('edit.html', registro=data[0])
     else:
         return redirect(url_for('index'))
@@ -175,10 +198,7 @@ def registrar():
         password = request.form['password']
         passwordconf = request.form['passwordconf']
         email = request.form['email']
-        print(username)
-        print(password)
-        print(email)
-        print(passwordconf)
+
         if password == passwordconf :
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute('SELECT * FROM usuarios WHERE email = % s', (email, ))
@@ -195,62 +215,13 @@ def registrar():
                 cursor.execute('INSERT INTO usuarios VALUES (NULL, % s, % s, % s)', (email, password, username, ))
                 mysql.connection.commit()
                 msg = 'Usuário cadastrado com sucesso!'
-                return render_template('registrar.html', msg=msg)
-                #return render_template("index.html")
+                #return render_template('registrar.html', msg=msg)
+                return render_template("index.html")
         else :
             msg = 'As senhas não estão iguais'
     elif request.method == 'POST':
         msg = 'Por favor, preencha os dados'
     return render_template('registrar.html', msg = msg)
-
-
-@app.route("/inserir", methods =['GET', 'POST'])
-def inserir():
-    if session['loggedin'] == True:
-        bemvindo = ''
-        msg = ''
-        if request.method == 'POST' and 'altura' in request.form and 'peso' in request.form and 'dt' in request.form:
-            altura = request.form['altura']
-            peso = request.form['peso']
-            dt = request.form['dt']
-            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            cursor.execute('INSERT INTO registros VALUES (NULL, % s, % s, % s, % s)', (peso, altura, dt, session['id'],))
-            mysql.connection.commit()
-            msg = 'Dados inseridos com sucesso!'
-            bemvindo = 'Bem-vindo(a), ' + session['username'] + '!'
-            cursorregistros = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            sql = """
-                            select 
-            	                codregistro as id,
-            	                date_format(registros.dtregistro,'%%d/%%m/%%Y') as dataregistro, 
-            	                registros.alturam, 
-            	                registros.pesokg, 
-            	                format(((pesokg) / ((alturam)*(alturam))),1) as imc, 
-            	                (case
-            		                when (pesokg)/((alturam)*(alturam)) < 18.5 then 'baixo peso' 
-            		                when (pesokg)/((alturam)*(alturam)) >=18.5 and (pesokg)/((alturam)*(alturam)) < 25 then 'normal' 
-            		                when (pesokg)/((alturam)*(alturam)) >=25 and (pesokg)/((alturam)*(alturam)) < 30 then 'sobrepeso' 
-            		                when (pesokg)/((alturam)*(alturam)) >=30 and (pesokg)/((alturam)*(alturam)) < 35 then 'obesidade classe I' 
-            		                when (pesokg)/((alturam)*(alturam)) >=35 and (pesokg)/((alturam)*(alturam)) < 40 then 'obesidade classe II' 
-            		                when (pesokg)/((alturam)*(alturam)) >=40 then 'obesidade classe III' 
-            		                else '0'
-            	                end) as status
-                            from 
-            	                piunivespimc.registros 
-                            inner join piunivespimc.usuarios on registros.regcodusuario = usuarios.codusuario
-                            where 
-            	                registros.regcodusuario = % s 
-                            order by 
-            	            dtregistro desc
-                        """
-            cursorregistros.execute(sql, (session['id'],))
-            resultados = cursorregistros.fetchall()
-
-            return render_template('home.html', bemvindo=bemvindo , resultados=resultados)
-        return render_template('inserir.html', msg = msg)
-
-    else:
-        return redirect(url_for('index'))
 
 
 if __name__ == "__main__":
