@@ -13,14 +13,19 @@
   <div class="container">
     <div class="login form">
       <div class="msg">{{ msg }}</div>
-      <form action="{{ url_for('perfil') }}" method="post">
+      <form action="{{ url_for('atualizaperfil') }}" method="post">
       <header>Meus dados</header>
+
       <form action="#">
-        <label>ID do usuario<input type="text" id="idusuario" name="idusuario" value="{{perfilusuario.idusuario}}" readonly></label>
-        <label>Email:</label><input id="emailusuario" name="emailusuario" type="text" placeholder="Email" value="{{perfilusuario.email}}" readonly></label>
-        <label>Usuario:</label><input id="nomeusuario" name="nomeusuario" type="text" placeholder="Usuario" value="{{perfilusuario.nome}}"></label>
-        <label>Nome completo</label><input id="nomecompleto" name="nomnomecompleto" type="text" placeholder="Nome completo" value="{{perfilusuario.nomecompleto}}"></label>
-        <label>Dt nasc.</label><input id="dtnasc" name="dtnasc" type="date" placeholder="Data de nascimento" value="{{perfilusuario.dtnasc}}"></label>
+        <label>ID:</label><input type="text" id="idusuario" name="idusuario" value="{{perfilusuario.idusuario}}" readonly>
+        <input id="emailinicial" name="emailinicial" type="text" placeholder="Email" value="{{perfilusuario.email}}" readonly, hidden>
+        <input id="usuarioinicial" name="usuarioinicial" type="text" placeholder="Usuario" value="{{perfilusuario.nome}}" readonly, hidden>
+        <label>Email:</label><input id="emailusuario" name="emailusuario" type="text" placeholder="Email" value="{{perfilusuario.email}}" required></label>
+        <label>Usuario:</label><input id="nomeusuario" name="nomeusuario" type="text" placeholder="Usuario" value="{{perfilusuario.nome}}" required></label>
+        <label>Nome completo:</label><input id="nomecompleto" name="nomecompleto" type="text" placeholder="Nome completo" value="{{perfilusuario.nomecompleto}}" required></label>
+        <label>Senha:</label><input id="senha" name="senha" type="password" placeholder="Senha" value="{{perfilusuario.senha}}"></label required>
+        <label>Repita:</label><input id="senharepita" name="senharepita" type="password" placeholder="Repita a senha" value="{{perfilusuario.senha}}" required></label>
+        <label>Dt nasc.</label><input id="dtnasc" name="dtnasc" type="date" placeholder="Data de nascimento" value="{{perfilusuario.dtnasc}}" required></label>
         <input type="submit" class="button" value="Alterar">
       </form>
       <div class="signup">
