@@ -11,7 +11,6 @@ import datetime
 
 
 
-
 app=Flask(__name__)
 
 
@@ -25,9 +24,9 @@ app.config['MYSQL_DB'] = 'univespi2'
 mysql = MySQL(app)
 
 #carregando grafico
-data_loader_obj = data_loader.DataLoader()
-DATA_SET_FULL = data_loader_obj.prepare_data_set_full()
-DATA_SET_GROUPED = data_loader_obj.prepare_data_set_grouped()
+#data_loader_obj = data_loader.DataLoader()
+#DATA_SET_FULL = data_loader_obj.prepare_data_set_full()
+#DATA_SET_GROUPED = data_loader_obj.prepare_data_set_grouped()
 #fim
 
 
