@@ -123,11 +123,17 @@ def visualizarcomp():
         vdestinatarios = cdestinatarios.fetchall()
         rcdestinatario=cdestinatarios.rowcount
         print(vdestinatarios)
+        pesokg=0
+        dadosgraf=0
+        dtregistro=0
+
         if rcdestinatario!=0:
-            return render_template('visualizarcomp.html', vdestinatarios=vdestinatarios)
+            return render_template('visualizarcomp.html', vdestinatarios=vdestinatarios, template_labels=dtregistro,
+                               template_values_confirmed=pesokg, dadosgraf=dadosgraf)
         else:
             vdestinatarios=0
-            return render_template('visualizarcomp.html', vdestinatarios=vdestinatarios)
+            return render_template('visualizarcomp.html', vdestinatarios=vdestinatarios, template_labels=dtregistro,
+                               template_values_confirmed=pesokg, dadosgraf=dadosgraf)
 
     return redirect(url_for('login'))
 
@@ -139,53 +145,53 @@ def ver_comp():
         if request.method == 'POST':
             idorigem = request.form['destinatario']
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            sqlorigem="""
-                        select 
-        	                registros.codregistro as id, 
-        	                date_format(registros.dtregistro,'%%d/%%m/%%Y') as dataregistro, 
-        	                registros.alturam, 
-        	                registros.pesokg, 
-        	                format(((pesokg) / ((alturam)*(alturam))),1) as imc, 
-        	                (case
-        		                when (pesokg)/((alturam)*(alturam)) < 18.5 then 'baixo peso' 
-        		                when (pesokg)/((alturam)*(alturam)) >=18.5 and (pesokg)/((alturam)*(alturam)) < 25 then 'normal' 
-        		                when (pesokg)/((alturam)*(alturam)) >=25 and (pesokg)/((alturam)*(alturam)) < 30 then 'sobrepeso' 
-        		                when (pesokg)/((alturam)*(alturam)) >=30 and (pesokg)/((alturam)*(alturam)) < 35 then 'obesidade classe I' 
-        		                when (pesokg)/((alturam)*(alturam)) >=35 and (pesokg)/((alturam)*(alturam)) < 40 then 'obesidade classe II' 
-        		                when (pesokg)/((alturam)*(alturam)) >=40 then 'obesidade classe III' 
-        		                else '0'
-        	                end) as status
-                        from 
-        	                univespi2.registros 
-                        inner join univespi2.usuarios on registros.regcodusuario = usuarios.codusuario
-                        where 
-        	                registros.regcodusuario = % s order by dtregistro desc"""
+            sqlorigem = """
+                            select 
+            	                registros.codregistro as id, 
+            	                date_format(registros.dtregistro,'%%d/%%m/%%Y') as dataregistro, 
+            	                registros.alturam, 
+            	                registros.pesokg, 
+            	                format(((pesokg) / ((alturam)*(alturam))),1) as imc, 
+            	                (case
+            		                when (pesokg)/((alturam)*(alturam)) < 18.5 then 'baixo peso' 
+            		                when (pesokg)/((alturam)*(alturam)) >=18.5 and (pesokg)/((alturam)*(alturam)) < 25 then 'normal' 
+            		                when (pesokg)/((alturam)*(alturam)) >=25 and (pesokg)/((alturam)*(alturam)) < 30 then 'sobrepeso' 
+            		                when (pesokg)/((alturam)*(alturam)) >=30 and (pesokg)/((alturam)*(alturam)) < 35 then 'obesidade classe I' 
+            		                when (pesokg)/((alturam)*(alturam)) >=35 and (pesokg)/((alturam)*(alturam)) < 40 then 'obesidade classe II' 
+            		                when (pesokg)/((alturam)*(alturam)) >=40 then 'obesidade classe III' 
+            		                else '0'
+            	                end) as status
+                            from 
+            	                univespi2.registros 
+                            inner join univespi2.usuarios on registros.regcodusuario = usuarios.codusuario
+                            where 
+            	                registros.regcodusuario = % s order by dtregistro desc"""
             print(idorigem)
-            print (sqlorigem)
+            print(sqlorigem)
             cursor.execute(sqlorigem, (idorigem,))
             dadoscomp = cursor.fetchall()
             print(dadoscomp)
             cdestinatarios = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             sqldestinatarios = """SELECT 
-                    	        usuorigem.nome AS usuorigemnome, 
-                    	        dadosusuorigem.nome AS nomecompletoorigem, 
-                    	        univespi2.compartilhamento.autorizar, 
-                    	        univespi2.compartilhamento.usuorigem, 
-                    	        univespi2.compartilhamento.usudestino 
-                            FROM 
-                    	        univespi2.usuarios usuorigem 
-                    	        INNER JOIN univespi2.dadosusuario dadosusuorigem 
-                    	        ON usuorigem.codusuario = dadosusuorigem.codusuario 
-                    	        INNER JOIN univespi2.compartilhamento 
-                    	        ON usuorigem.codusuario = univespi2.compartilhamento.usuorigem 
-                    	        INNER JOIN univespi2.usuarios usudestino 
-                    	        ON univespi2.compartilhamento.usudestino = usudestino.codusuario 
-                    	        INNER JOIN univespi2.dadosusuario dadosusuodestino 
-                    	        ON usudestino.codusuario = dadosusuodestino.codusuario 
-                            WHERE 
-                    	        univespi2.compartilhamento.usudestino = % s
-                    	    order by 
-                    	        usuorigemnome"""
+                        	        usuorigem.nome AS usuorigemnome, 
+                        	        dadosusuorigem.nome AS nomecompletoorigem, 
+                        	        univespi2.compartilhamento.autorizar, 
+                        	        univespi2.compartilhamento.usuorigem, 
+                        	        univespi2.compartilhamento.usudestino 
+                                FROM 
+                        	        univespi2.usuarios usuorigem 
+                        	        INNER JOIN univespi2.dadosusuario dadosusuorigem 
+                        	        ON usuorigem.codusuario = dadosusuorigem.codusuario 
+                        	        INNER JOIN univespi2.compartilhamento 
+                        	        ON usuorigem.codusuario = univespi2.compartilhamento.usuorigem 
+                        	        INNER JOIN univespi2.usuarios usudestino 
+                        	        ON univespi2.compartilhamento.usudestino = usudestino.codusuario 
+                        	        INNER JOIN univespi2.dadosusuario dadosusuodestino 
+                        	        ON usudestino.codusuario = dadosusuodestino.codusuario 
+                                WHERE 
+                        	        univespi2.compartilhamento.usudestino = % s
+                        	    order by 
+                        	        usuorigemnome"""
             cdestinatarios.execute(sqldestinatarios, (session['id'],))
             vdestinatarios = cdestinatarios.fetchall()
             rcdestinatario = cdestinatarios.rowcount
@@ -338,7 +344,7 @@ def grafico():
             pesokg.append(row['pesokg'])
 
         return render_template('grafico.html', template_labels=dtregistro,
-                               template_values_confirmed=pesokg)
+                               template_values_confirmed=pesokg, dadosgraf=dadosgraf)
 
     else:
         return redirect(url_for('index'))
