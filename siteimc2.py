@@ -5,6 +5,9 @@ from data import data_loader
 
 import MySQLdb.cursors
 import re
+import datetime
+
+
 
 
 
@@ -58,7 +61,7 @@ def login():
 @app.route('/home', methods=['GET', 'POST'])
 def home():
     if session['loggedin'] == True:
-        bemvindo = 'Bem-vindo(a), ' + session['username'] + '!'
+        bemvindo = 'Bem-vindo(a), ' + session['username'] + '! - (seu número id é: ' + str(session['id']) + ')'
         cursorregistros = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         sql = """
                         select 
@@ -90,6 +93,112 @@ def home():
         #    print(rows)
         return render_template('home.html', bemvindo=bemvindo, resultados=resultados)
     return redirect(url_for('login'))
+
+
+@app.route('/visualizarcomp', methods=['GET', 'POST'])
+def visualizarcomp():
+    if session['loggedin'] == True:
+        cdestinatarios = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        sqldestinatarios = """SELECT 
+        	        usuorigem.nome AS usuorigemnome, 
+        	        dadosusuorigem.nome AS nomecompletoorigem, 
+        	        univespi2.compartilhamento.autorizar, 
+        	        univespi2.compartilhamento.usuorigem, 
+        	        univespi2.compartilhamento.usudestino 
+                FROM 
+        	        univespi2.usuarios usuorigem 
+        	        INNER JOIN univespi2.dadosusuario dadosusuorigem 
+        	        ON usuorigem.codusuario = dadosusuorigem.codusuario 
+        	        INNER JOIN univespi2.compartilhamento 
+        	        ON usuorigem.codusuario = univespi2.compartilhamento.usuorigem 
+        	        INNER JOIN univespi2.usuarios usudestino 
+        	        ON univespi2.compartilhamento.usudestino = usudestino.codusuario 
+        	        INNER JOIN univespi2.dadosusuario dadosusuodestino 
+        	        ON usudestino.codusuario = dadosusuodestino.codusuario 
+                WHERE 
+        	        univespi2.compartilhamento.usudestino = % s
+        	    order by 
+        	        usuorigemnome"""
+        cdestinatarios.execute(sqldestinatarios, (session['id'],))
+        vdestinatarios = cdestinatarios.fetchall()
+        rcdestinatario=cdestinatarios.rowcount
+        print(vdestinatarios)
+        if rcdestinatario!=0:
+            return render_template('visualizarcomp.html', vdestinatarios=vdestinatarios)
+        else:
+            vdestinatarios=0
+            return render_template('visualizarcomp.html', vdestinatarios=vdestinatarios)
+
+    return redirect(url_for('login'))
+
+
+@app.route('/ver_comp', methods=['GET', 'POST'])
+def ver_comp():
+    if session['loggedin'] == True:
+
+        if request.method == 'POST':
+            idorigem = request.form['destinatario']
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            sqlorigem="""
+                        select 
+        	                registros.codregistro as id, 
+        	                date_format(registros.dtregistro,'%%d/%%m/%%Y') as dataregistro, 
+        	                registros.alturam, 
+        	                registros.pesokg, 
+        	                format(((pesokg) / ((alturam)*(alturam))),1) as imc, 
+        	                (case
+        		                when (pesokg)/((alturam)*(alturam)) < 18.5 then 'baixo peso' 
+        		                when (pesokg)/((alturam)*(alturam)) >=18.5 and (pesokg)/((alturam)*(alturam)) < 25 then 'normal' 
+        		                when (pesokg)/((alturam)*(alturam)) >=25 and (pesokg)/((alturam)*(alturam)) < 30 then 'sobrepeso' 
+        		                when (pesokg)/((alturam)*(alturam)) >=30 and (pesokg)/((alturam)*(alturam)) < 35 then 'obesidade classe I' 
+        		                when (pesokg)/((alturam)*(alturam)) >=35 and (pesokg)/((alturam)*(alturam)) < 40 then 'obesidade classe II' 
+        		                when (pesokg)/((alturam)*(alturam)) >=40 then 'obesidade classe III' 
+        		                else '0'
+        	                end) as status
+                        from 
+        	                univespi2.registros 
+                        inner join univespi2.usuarios on registros.regcodusuario = usuarios.codusuario
+                        where 
+        	                registros.regcodusuario = % s order by dtregistro desc"""
+            print(idorigem)
+            print (sqlorigem)
+            cursor.execute(sqlorigem, (idorigem,))
+            dadoscomp = cursor.fetchall()
+            print(dadoscomp)
+            cdestinatarios = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            sqldestinatarios = """SELECT 
+                    	        usuorigem.nome AS usuorigemnome, 
+                    	        dadosusuorigem.nome AS nomecompletoorigem, 
+                    	        univespi2.compartilhamento.autorizar, 
+                    	        univespi2.compartilhamento.usuorigem, 
+                    	        univespi2.compartilhamento.usudestino 
+                            FROM 
+                    	        univespi2.usuarios usuorigem 
+                    	        INNER JOIN univespi2.dadosusuario dadosusuorigem 
+                    	        ON usuorigem.codusuario = dadosusuorigem.codusuario 
+                    	        INNER JOIN univespi2.compartilhamento 
+                    	        ON usuorigem.codusuario = univespi2.compartilhamento.usuorigem 
+                    	        INNER JOIN univespi2.usuarios usudestino 
+                    	        ON univespi2.compartilhamento.usudestino = usudestino.codusuario 
+                    	        INNER JOIN univespi2.dadosusuario dadosusuodestino 
+                    	        ON usudestino.codusuario = dadosusuodestino.codusuario 
+                            WHERE 
+                    	        univespi2.compartilhamento.usudestino = % s
+                    	    order by 
+                    	        usuorigemnome"""
+            cdestinatarios.execute(sqldestinatarios, (session['id'],))
+            vdestinatarios = cdestinatarios.fetchall()
+            rcdestinatario = cdestinatarios.rowcount
+            print(vdestinatarios)
+            if rcdestinatario != 0:
+                return render_template('visualizarcomp.html', vdestinatarios=vdestinatarios, dadoscomp=dadoscomp)
+            else:
+                vdestinatarios = 0
+                return render_template('visualizarcomp.html', vdestinatarios=vdestinatarios, dadoscomp=dadoscomp)
+
+    else:
+        return redirect(url_for('index'))
+
 
 
 @app.route('/perfil', methods =['GET', 'POST'])
@@ -193,17 +302,222 @@ def grafico():
     the main route rendering index.html
     :return:
     """
+    if session['loggedin'] == True:
+        cursordadosgraf = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        sql = """
+                                select 
+                	                registros.codregistro as id, 
+                	                date_format(registros.dtregistro,'%%d/%%m/%%Y') as dataregistro, 
+                	                registros.alturam, 
+                	                registros.pesokg, 
+                	                format(((pesokg) / ((alturam)*(alturam))),1) as imc, 
+                	                (case
+                		                when (pesokg)/((alturam)*(alturam)) < 18.5 then 'baixo peso' 
+                		                when (pesokg)/((alturam)*(alturam)) >=18.5 and (pesokg)/((alturam)*(alturam)) < 25 then 'normal' 
+                		                when (pesokg)/((alturam)*(alturam)) >=25 and (pesokg)/((alturam)*(alturam)) < 30 then 'sobrepeso' 
+                		                when (pesokg)/((alturam)*(alturam)) >=30 and (pesokg)/((alturam)*(alturam)) < 35 then 'obesidade classe I' 
+                		                when (pesokg)/((alturam)*(alturam)) >=35 and (pesokg)/((alturam)*(alturam)) < 40 then 'obesidade classe II' 
+                		                when (pesokg)/((alturam)*(alturam)) >=40 then 'obesidade classe III' 
+                		                else '0'
+                	                end) as status
+                                from 
+                	                univespi2.registros 
+                                inner join univespi2.usuarios on registros.regcodusuario = usuarios.codusuario
+                                where 
+                	                registros.regcodusuario = % s 
+                                order by 
+                	            dtregistro asc
+                            """
+        cursordadosgraf.execute(sql, (session['id'],))
+        dadosgraf = cursordadosgraf.fetchall()
 
-    labels = [x[0] for x in DATA_SET_GROUPED]
-    values_confirmed = [x[1] for x in DATA_SET_GROUPED]
-    values_deaths = [x[2] for x in DATA_SET_GROUPED]
-    values_recovered = [x[3] for x in DATA_SET_GROUPED]
+        dtregistro=[]
+        pesokg=[]
+        for row in dadosgraf:
+            dtregistro.append(row['dataregistro'])
+            pesokg.append(row['pesokg'])
 
-    return render_template('grafico.html', template_labels=labels,
-                           template_values_confirmed=values_confirmed,
-                           template_values_deaths=values_deaths,
-                           template_values_recovered=values_recovered)
+        return render_template('grafico.html', template_labels=dtregistro,
+                               template_values_confirmed=pesokg)
 
+    else:
+        return redirect(url_for('index'))
+
+
+@app.route('/compartilhamento', methods=['GET', 'POST'])
+def compartilhamento():
+    if session['loggedin'] == True:
+        cursorcompartilhamento = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        sqlcompartilhamento="""SELECT 
+	        usudestino.nome AS usudestinonome, 
+	        dadosusuodestino.nome AS nomecompletodestino, 
+	        univespi2.compartilhamento.autorizar, 
+	        univespi2.compartilhamento.usuorigem, 
+	        univespi2.compartilhamento.usudestino 
+        FROM 
+	        univespi2.usuarios usuorigem 
+	        INNER JOIN univespi2.dadosusuario dadosusuorigem 
+	        ON usuorigem.codusuario = dadosusuorigem.codusuario 
+	        INNER JOIN univespi2.compartilhamento 
+	        ON usuorigem.codusuario = univespi2.compartilhamento.usuorigem 
+	        INNER JOIN univespi2.usuarios usudestino 
+	        ON univespi2.compartilhamento.usudestino = usudestino.codusuario 
+	        INNER JOIN univespi2.dadosusuario dadosusuodestino 
+	        ON usudestino.codusuario = dadosusuodestino.codusuario 
+        WHERE 
+	        univespi2.compartilhamento.usuorigem = % s
+	    order by 
+	        usudestino"""
+
+        cursorcompartilhamento.execute(sqlcompartilhamento, (session['id'],))
+        dadoscompartilhamento = cursorcompartilhamento.fetchall()
+
+        return render_template('compartilhamento.html', dadoscompartilhamento=dadoscompartilhamento)
+
+    else:
+        return redirect(url_for('index'))
+
+@app.route('/add_compartilhamento', methods=['GET', 'POST'])
+def add_compartilhamento():
+    if session['loggedin'] == True:
+
+        if request.method == 'POST':
+            idcompartilhar = request.form['idcompartilhar']
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            sqlcompartilhar='insert into compartilhamento values (' +  str(session['id']) + ', ' + idcompartilhar + ', true)'
+            print(sqlcompartilhar)
+            cursor.execute(sqlcompartilhar)
+            mysql.connection.commit()
+            flash('Compartilhado com sucesso')
+
+            return redirect(url_for('compartilhamento'))
+
+    else:
+        return redirect(url_for('index'))
+
+@app.route('/delcompartilhamento/<string:id>', methods=['POST', 'GET'])
+def delcompartilhamento(id):
+    if session['loggedin'] == True:
+        querysql = "delete from compartilhamento where usudestino=" + id + " and usuorigem=" + str(session['id'])
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(querysql)
+        mysql.connection.commit()
+        flash('Compartilhamento removido.')
+
+        return redirect(url_for('compartilhamento'))
+
+    else:
+        return redirect(url_for('index'))
+
+
+@app.route('/sugestoes', methods=['GET', 'POST'])
+def sugestoes():
+    if session['loggedin'] == True:
+        cursorsugestoes = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        sqldestinatarios = """SELECT 
+        	        usuorigem.nome AS usuorigemnome, 
+        	        dadosusuorigem.nome AS nomecompletoorigem, 
+        	        univespi2.compartilhamento.autorizar, 
+        	        univespi2.compartilhamento.usuorigem, 
+        	        univespi2.compartilhamento.usudestino 
+                FROM 
+        	        univespi2.usuarios usuorigem 
+        	        INNER JOIN univespi2.dadosusuario dadosusuorigem 
+        	        ON usuorigem.codusuario = dadosusuorigem.codusuario 
+        	        INNER JOIN univespi2.compartilhamento 
+        	        ON usuorigem.codusuario = univespi2.compartilhamento.usuorigem 
+        	        INNER JOIN univespi2.usuarios usudestino 
+        	        ON univespi2.compartilhamento.usudestino = usudestino.codusuario 
+        	        INNER JOIN univespi2.dadosusuario dadosusuodestino 
+        	        ON usudestino.codusuario = dadosusuodestino.codusuario 
+                WHERE 
+        	        univespi2.compartilhamento.usudestino = % s
+        	    order by 
+        	        usuorigemnome"""
+
+        cursorsugestoes.execute(sqldestinatarios, (session['id'],))
+        dadosdestinatarios = cursorsugestoes.fetchall()
+        rc=cursorsugestoes.rowcount
+
+        cursormsgsugestoes = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        sqlmsgsugestoes="""SELECT 
+                univespi2.sugestoes.idmsg as idmsg,
+	            univespi2.dadosusuario.nome as nomeorigem, 
+	            univespi2.sugestoes.de as idorigem, 
+	            sugestoes.dt as dtmsg, 
+	            univespi2.sugestoes.mensagem as msg 
+            FROM 
+	            univespi2.usuarios 
+	            INNER JOIN univespi2.sugestoes 
+	            ON univespi2.usuarios.codusuario = univespi2.sugestoes.de 
+	            INNER JOIN univespi2.dadosusuario 
+	            ON univespi2.usuarios.codusuario = univespi2.dadosusuario.codusuario 
+            WHERE 
+	            univespi2.sugestoes.para = %s order by dtmsg desc"""
+        cursormsgsugestoes.execute(sqlmsgsugestoes, (session['id'],))
+        dadosmsgsugestoes = cursormsgsugestoes.fetchall()
+        rcmsgsugestoes = cursormsgsugestoes.rowcount
+
+        if rc !=0:
+            if rcmsgsugestoes!=0:
+                return render_template('sugestoes.html', dadosdestinatarios=dadosdestinatarios, dadosmsgsugestoes=dadosmsgsugestoes)
+            else:
+                dadosmsgsugestoes=0
+                return render_template('sugestoes.html', dadosdestinatarios=dadosdestinatarios,
+                                       dadosmsgsugestoes=dadosmsgsugestoes)
+        else:
+            if rcmsgsugestoes != 0:
+                dadosdestinatarios=0
+                return render_template('sugestoes.html', dadosdestinatarios=dadosdestinatarios,dadosmsgsugestoes=dadosmsgsugestoes)
+            else:
+                dadosmsgsugestoes = 0
+                dadosdestinatarios = 0
+                return render_template('sugestoes.html', dadosdestinatarios=dadosdestinatarios,
+                                       dadosmsgsugestoes=dadosmsgsugestoes)
+    else:
+        return redirect(url_for('index'))
+
+
+
+@app.route('/add_sugestao', methods=['GET', 'POST'])
+def add_sugestao():
+    if session['loggedin'] == True:
+
+        if request.method == 'POST':
+            iddestinatario = request.form['destinatario']
+            textosugestao=request.form['sugestaomsg']
+            #dtsugestao=datetime.datetime.now()
+            now = datetime.datetime.now()
+            dtsugestao = now.strftime("%Y-%m-%d %H:%M:%S")
+            print(iddestinatario)
+            #print(textosugestao)
+            print(dtsugestao)
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            sqlsugestao="insert into sugestoes values (NULL, " +  str(session['id']) + ", " + str(iddestinatario) + ", '" + str(dtsugestao) + "', '" + textosugestao + "')"
+            print(sqlsugestao)
+            cursor.execute(sqlsugestao)
+            mysql.connection.commit()
+            flash('Sugestao enviada com sucesso')
+
+            return redirect(url_for('sugestoes'))
+
+    else:
+        return redirect(url_for('index'))
+
+
+@app.route('/delsugestao/<string:id>', methods=['GET', 'POST'])
+def delsugestao(id):
+    if session['loggedin'] == True:
+        querysql = "delete from sugestoes where idmsg=" + id
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(querysql)
+        mysql.connection.commit()
+        flash('Sugestão removida.')
+
+        return redirect(url_for('sugestoes'))
+
+    else:
+        return redirect(url_for('index'))
 
 
 @app.route('/<string:item>', methods=['GET'])

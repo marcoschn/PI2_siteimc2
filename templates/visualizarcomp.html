@@ -1,0 +1,75 @@
+<!--//index.html -->
+{% extends "layout.html" %}
+{% block body %}
+
+
+<div class="row"><h3>Visualizar</h3></div>
+  <div class="row">
+	<div class="col-md-8">
+
+			<table id="example" class="table table-striped table-bordered" style="width:100%">
+			<thead>
+				<tr>
+					<td>ID</td>
+					<td>Data</td>
+					<td>Altura (m)</td>
+					<td>Peso (kg)</td>
+					<td>IMC</td>
+					<td>Status</td>
+				</tr>
+			</thead>
+			<tbody>
+			{% for data in dadoscomp %}
+				<tr>
+					<td>{{data.id}}</td>
+					<td>{{data.dataregistro}}</td>
+					<td>{{data.alturam}}</td>
+					<td>{{data.pesokg}}</td>
+					<td>{{data.imc}}</td>
+					<td>{{data.status}}</td>
+				</tr>
+			{% endfor %}
+			</tbody>
+			</table>
+    </div>
+    <div class="col-md-4">
+      {% with messages = get_flashed_messages()  %}
+      {% if messages %}
+      {% for message in messages %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+      <div class="card card-body">
+        <form action="{{url_for('ver_comp')}}" method="POST">
+          {% if vdestinatarios != 0 %}
+		  <div class="form-group">
+
+              <button class="btn btn-primary btn-block">Visualizar</button>
+		  </div>
+          <div class="form-group">
+			  <label>Visualizar dados de :</label><select name="destinatario" id="destinatario">
+              {% for data in vdestinatarios %}
+                <option value="{{data.usuorigem}}">{{data.nomecompletoorigem}} - id: {{data.usuorigem}}</option>
+              {% endfor %}
+		  </div>
+
+            {% else %}
+
+              <p>Como ninguém compartilhou dados com você, não dá para visualizar dados de ninguém, por enquanto.</p>
+
+            {% endif %}
+
+		</form>
+       </div>
+
+	 </div>
+    </div>
+
+
+{% endblock %}

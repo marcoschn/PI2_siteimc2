@@ -1,15 +1,18 @@
-<!DOCTYPE html>
+<!--//index.html -->
+{% extends "layout.html" %}
+{% block body %}
+<!--<!DOCTYPE html>-->
 
-<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Login</title>
-  <!---Custom CSS File--->
-  <link rel="stylesheet" href="static/css/stylelogin.css">
-</head>
-<body>
+<!--<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--  <meta http-equiv="X-UA-Compatible" content="ie=edge">-->
+<!--  <title>Login</title>-->
+<!--  &lt;!&ndash;-Custom CSS File-&ndash;&gt;-->
+<link rel="stylesheet" href="static/css/stylelogin.css">
+<!--</head>-->
+<!--<body>-->
   <div class="container">
     <div class="login form">
       <div class="msg">{{ msg }}</div>
@@ -36,5 +39,6 @@
     </div>
 
   </div>
-</body>
-</html>
+<!--</body>-->
+<!--</html>-->
+{% endblock %}
